@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build_dev:
     docker:
-      - image: circleci/ruby:2.4
+      - image: circleci/ruby:2.4.1-jessie
         environment:
           BUNDLE_WITHOUT: production
           BUNDLE_JOBS: 3
@@ -39,7 +39,7 @@ jobs:
       - run: echo "hello development"
   build_prod:
     docker:
-      - image: ruby:2.4.0
+      - image: circleci/ruby:2.4.1-jessie
     steps:
       - checkout
       - run: echo "hello production"
