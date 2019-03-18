@@ -1,0 +1,30 @@
+version: 2.1
+jobs:
+  build_dev:
+    docker:
+      - image: ruby:2.4.0
+    steps:
+      - checkout
+      - run: echo "hello development"
+  build_prod:
+    docker:
+      - image: ruby:2.4.0
+    steps:
+      - checkout
+      - run: echo "hello production"
+workflows:
+  version: 2
+  development:
+    jobs:
+      - build_dev:
+          filters:
+            branches:
+              only:
+                - /^((?!master).)*$/
+  production:
+    jobs:
+      - build_prod:
+          filters:
+            branches:
+              only: /^master$/
+
