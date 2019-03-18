@@ -1,9 +1,30 @@
 version: 2.1
-
-orbs:
-  hello: circleci/hello-build@0.0.7
-
+jobs:
+  build_dev:
+    docker:
+      - image: ruby:2.4.0
+    steps:
+      - checkout
+      - run: echo "hello development"
+  build_prod:
+    docker:
+      - image: ruby:2.4.0
+    steps:
+      - checkout
+      - run: echo "hello production"
 workflows:
-  "Hello Workflow":
+  version: 2
+  development:
     jobs:
-      - hello/hello-build
+      - build_dev:
+          filters:
+            branches:
+              only:
+                - /^((?!master).)*$/
+  production:
+    jobs:
+      - build_prod:
+          filters:
+            branches:
+              only: /^master$/
+
