@@ -11,6 +11,7 @@ jobs:
           RACK_ENV: development
       - image: tkuchiki/delayed-mysql
         environment:
+          MYSQL_ROOT_HOST: "%"
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: circleci
