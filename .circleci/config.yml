@@ -19,10 +19,10 @@ jobs:
       - run:
           name: which_bundler
           command: bundle -v
-      - restore_cache:
-          keys:
-            - hello-world-{{ checksum "Gemfile.lock" }}
-            - hello-world-
+      #- restore_cache:
+      #    keys:
+      #      - hello-world-{{ checksum "Gemfile.lock" }}
+      #      - hello-world-
       - run:
           name: bundle_install
           command: bundle check || bundle install
