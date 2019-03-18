@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build_dev:
     docker:
-      - image: ruby:2.4.0
+      - image: circleci/ruby:2.4-node-jessie
         environment:
           BUNDLE_WITHOUT: production
           BUNDLE_JOBS: 3
