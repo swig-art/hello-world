@@ -10,56 +10,104 @@ jobs:
           BUNDLE_PATH: vendor/bundle
           MYSQL_USER: root
           RACK_ENV: development
+
       - image: tkuchiki/delayed-mysql
         environment:
           MYSQL_ROOT_HOST: "%"
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: circleci
+
     steps:
+      # Get latest code
       - checkout
+
+      # Baseline image from CCI does not have Rails dependencies installed
       - run: 
           name: install_dependencies
           command: sudo apt-get update && sudo apt-get install -y build-essential libpq-dev nodejs
+
+      # Informational in case of errors later
       - run:
           name: which_bundler
           command: bundle -v
 
+      # If cached gems are found from a previous run, get them and use them. 
       - restore_cache:
           keys:
             - hello-world-{{ checksum "Gemfile.lock" }}
             - hello-world-
+      
+      # Install Gems from Gemfile.
       - run:
           name: bundle_install
           command: bundle check || bundle install
+
+      # Update Gem cache if needed.
       - save_cache:
           key: hello-world-{{ checksum "Gemfile.lock" }}
           paths:
             - vendor/bundle
 
+      # Wait for the DB container to come online. This command is a builtin for the container
       - run: 
           name: wait_for_db
           command: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
 
+      # Create baseline DBs as a sanity check. 
       - run:
           name: test_db_connectivity
           command: bundle exec rake db:create
+
+      # Run assets precompile 
       - run: 
           name: assets_precompile
           command: bundle exec rake assets:precompile
+
+      # Run DB Migrate Rake tasks if present
       - run:
           name: db_migrate
           command: bundle exec rake db:migrate
+
+      # Tests passed! Hello world. 
       - run: echo "hello development"
+
 
   build_prod:
     docker:
       - image: circleci/ruby:2.4.1-jessie
+        environment:
+          BUNDLE_WITHOUT: test:development
+          BUNDLE_JOBS: 3
+          BUNDLE_RETRY: 3
+          BUNDLE_PATH: vendor/bundle
+          RACK_ENV: production
+
     steps:
+      # Get latest code
       - checkout
-      - run: echo "hello production"
+
+      # Baseline image from CCI does not have Rails dependencies installed
+      - run:
+          name: install_dependencies
+          command: sudo apt-get update && sudo apt-get install -y build-essential libpq-dev nodejs
+
+      # If cached gems are found from a previous run, get them and use them.
+      - restore_cache:
+          keys:
+            - hello-world-prod-{{ checksum "Gemfile.lock" }}
+            - hello-world-prod-
+
+      # Install Gems from Gemfile.
+      - run:
+          name: bundle_install
+          command: bundle check || bundle install
+
+
+
 workflows:
   version: 2
+
   development:
     jobs:
       - build_dev:
@@ -67,10 +115,10 @@ workflows:
             branches:
               only:
                 - /^((?!master).)*$/
+
   production:
     jobs:
       - build_prod:
           filters:
             branches:
               only: /^master$/
-
