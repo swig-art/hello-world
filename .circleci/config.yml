@@ -20,7 +20,7 @@ jobs:
       - run:
           name: ecr_login
           command: >
-            LOGIN_COMMAND="$(aws ecr get-login --no-include-email --region $AWS_REGION)"
+            LOGIN_COMMAND=$(aws ecr get-login --no-include-email --region $AWS_REGION)
             $LOGIN_COMMAND
       - run:
           name: push_image
