@@ -87,6 +87,7 @@ jobs:
           RACK_ENV: production
 
     steps:
+      - checkout
       - run:
         name: test_env_var
         command: echo "$CIRCLE_TAG"
