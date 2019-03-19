@@ -4,7 +4,6 @@ orbs:
   aws-ecr: circleci/aws-ecr@3.0.0
 
 jobs:
-
   staging_tests:
     docker:
       - image: circleci/ruby:2.4.1-jessie
@@ -82,10 +81,10 @@ workflows:
 
   staging:
     jobs:
-      - staging_tests
-      filters:
-        branches:
-          only: /^((?!master).)*$/
+      - staging_tests:
+          filters:
+            branches:
+              only: /^((?!master).)*$/
   
   push_staging:
     jobs:
