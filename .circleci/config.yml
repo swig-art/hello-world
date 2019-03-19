@@ -45,6 +45,11 @@ workflows:
           account-url: AWS_ECR_ACCOUNT_URL
           repo: staging-hello-world
           tag: CIRCLE_TAG
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^staging.*/
 
   production:
     jobs:
