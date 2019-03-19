@@ -117,14 +117,3 @@ workflows:
             tags:
               only: /^staging.*/
 
-  push_production:
-    jobs:
-      - aws-ecr/build_and_push_image:
-          account-url: AWS_ECR_ACCOUNT_URL
-          repo: prod-hello-world
-          tag: {{ .Environment.CIRCLE_TAG }}
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+/
