@@ -33,15 +33,7 @@ workflows:
 
   staging:
     jobs:
-      - build_and_push_staging:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^staging.*/
       - aws-ecr/build_and_push_image:
-          requires:
-            - build_and_push_staging
           account-url: AWS_ECR_ACCOUNT_URL
           repo: staging-hello-world
           tag: CIRCLE_TAG
