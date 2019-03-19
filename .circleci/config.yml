@@ -1,4 +1,8 @@
 version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@3.0.0
+
 jobs:
   build_dev:
     docker:
@@ -72,7 +76,6 @@ jobs:
       # Tests passed! Hello world. 
       - run: echo "hello development"
 
-
   build_prod:
     docker:
       - image: circleci/ruby:2.4.1-jessie
@@ -84,25 +87,9 @@ jobs:
           RACK_ENV: production
 
     steps:
-      # Get latest code
-      - checkout
-
-      # Baseline image from CCI does not have Rails dependencies installed
       - run:
-          name: install_dependencies
-          command: sudo apt-get update && sudo apt-get install -y build-essential libpq-dev nodejs
-
-      # If cached gems are found from a previous run, get them and use them.
-      - restore_cache:
-          keys:
-            - hello-world-prod-{{ checksum "Gemfile.lock" }}
-            - hello-world-prod-
-
-      # Install Gems from Gemfile.
-      - run:
-          name: bundle_install
-          command: bundle check || bundle install
-
+        name: test_env_var
+        command: echo "$CIRCLE_TAG"
 
 
 workflows:
@@ -121,4 +108,5 @@ workflows:
       - build_prod:
           filters:
             branches:
-              only: /^master$/
+              only: master 
+
