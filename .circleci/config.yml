@@ -16,6 +16,7 @@ jobs:
         RACK_ENV: development
     steps:
       - checkout
+      - setup_remote_docker
       - aws-ecr/build-image:
           account-url: AWS_ECR_ACCOUNT_URL
           repo: staging-hello-world
