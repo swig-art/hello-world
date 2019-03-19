@@ -19,9 +19,7 @@ jobs:
             docker build -t "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG" . 
       - run:
           name: ecr_login
-          command: >
-            LOGIN_COMMAND=$(aws ecr get-login --no-include-email --region $AWS_REGION)
-            $LOGIN_COMMAND
+          command: $(aws ecr get-login --no-include-email --region $AWS_REGION)
       - run:
           name: push_image
           command: docker push "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG"
