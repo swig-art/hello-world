@@ -4,6 +4,22 @@ orbs:
   aws-ecr: circleci/aws-ecr@3.0.0
 
 jobs:
+  build_staging:
+    docker:
+    - image: circleci/ruby:2.4.1-jessie
+      environment:
+        BUNDLE_WITHOUT: production
+        BUNDLE_JOBS: 3
+        BUNDLE_RETRY: 3
+        BUNDLE_PATH: vendor/bundle
+        MYSQL_USER: root
+        RACK_ENV: development
+    steps:
+      - checkout
+      - aws-ecr/build-image:
+          account-url: AWS_ECR_ACCOUNT_URL
+          repo: staging-hello-world
+
   build_prod:
     docker:
       - image: circleci/ruby:2.4.1-jessie
@@ -25,9 +41,7 @@ workflows:
 
   staging:
     jobs:
-      - aws-ecr/build-image:
-          account-url: AWS_ECR_ACCOUNT_URL
-          repo: staging-hello-world
+      - build_staging:
           filters:
             branches:
               only:
