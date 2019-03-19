@@ -4,20 +4,18 @@ orbs:
   aws-ecr: circleci/aws-ecr@3.0.0
 
 jobs:
-  build_staging:
+  build_and_push_staging:
     docker:
     - image: circleci/ruby:2.4.1-jessie
-      environment:
-        BUNDLE_WITHOUT: production
-        BUNDLE_JOBS: 3
-        BUNDLE_RETRY: 3
-        BUNDLE_PATH: vendor/bundle
-        RACK_ENV: development
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - aws-ecr/build-image
+      - aws-ecr/build_and_push_image:
+          account-url: AWS_ECR_ACCOUNT_URL
+          repo: staging-hello-world
+          tag: CIRCLE_TAG
+
 
   build_prod:
     docker:
@@ -40,11 +38,12 @@ workflows:
 
   staging:
     jobs:
-      - build_staging:
+      - build_and_push_staging:
           filters:
             branches:
-              only:
-                - /^((?!master).)*$/
+              ignore: /.*/
+            tags:
+              only: /^staging.v[0-9]+(\.[0-9]+)*$/
 
   production:
     jobs:
