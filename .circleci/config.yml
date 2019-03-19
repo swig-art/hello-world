@@ -38,7 +38,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^staging.v[0-9]+(\.[0-9]+)*$/
+              only: /^staging.*/
       - aws-ecr/build_and_push_image:
           requires:
             - build_and_push_staging
