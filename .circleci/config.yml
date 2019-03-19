@@ -1,9 +1,31 @@
 version: 2.1
 
 orbs:
-  aws-ecr: circleci/aws-ecr@3.0.0
+  aws-cli: circleci/aws-cli@0.1.11
 
 jobs:
+  ecr_staging:
+    machine: true
+    steps:
+      - checkout
+      - aws-cli/install
+      - aws-cli/configure:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-region: AWS_REGION
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+      - run:
+          name: ecr_login
+          command: >
+            LOGIN_COMMAND="$(aws ecr get-login --no-include-email --region $AWS_REGION)"
+            $LOGIN_COMMAND
+      - run:
+          name: build_image
+          command: |
+            docker build -t "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG" . 
+      - run:
+          name: push_image
+          command: docker push "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG"
+
   staging_tests:
     docker:
       - image: circleci/ruby:2.4.1-jessie
@@ -88,10 +110,7 @@ workflows:
   
   push_staging:
     jobs:
-      - aws-ecr/build_and_push_image:
-          account-url: AWS_ECR_ACCOUNT_URL
-          repo: staging-hello-world
-          tag: {{ .Environment.CIRCLE_TAG }}
+      - ecr_staging:
           filters:
             branches:
               ignore: /.*/
