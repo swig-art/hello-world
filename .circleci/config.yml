@@ -89,9 +89,16 @@ jobs:
     steps:
       - checkout
       - run:
-          name: test_env_var
-          command: echo "$CIRCLE_TAG"
-
+          name: test_for_tag
+          command: |
+            echo "$CIRCLE_TAG"
+            if git log -1 --pretty=%B | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
+              continue
+            else
+              echo "Master branch has no tag or has not been tagged properly." 
+              echo "FATAL ERROR. Exiting"
+              exit 1
+            fi
 
 workflows:
   version: 2
