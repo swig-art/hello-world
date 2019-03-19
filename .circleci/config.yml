@@ -91,7 +91,6 @@ jobs:
       - run:
           name: test_for_tag
           command: |
-            echo "$CIRCLE_TAG"
             if git log -1 --pretty=%B | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
               continue
             else
@@ -99,6 +98,7 @@ jobs:
               echo "FATAL ERROR. Exiting"
               exit 1
             fi
+            echo "$CIRCLE_TAG"
 
 workflows:
   version: 2
