@@ -12,14 +12,12 @@ jobs:
         BUNDLE_JOBS: 3
         BUNDLE_RETRY: 3
         BUNDLE_PATH: vendor/bundle
-        MYSQL_USER: root
         RACK_ENV: development
     steps:
       - checkout
-      - setup_remote_docker
-      - aws-ecr/build-image:
-          account-url: AWS_ECR_ACCOUNT_URL
-          repo: staging-hello-world
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - aws-ecr/build-image
 
   build_prod:
     docker:
