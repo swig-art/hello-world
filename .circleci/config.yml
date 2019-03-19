@@ -89,8 +89,8 @@ jobs:
     steps:
       - checkout
       - run:
-        name: test_env_var
-        command: echo "$CIRCLE_TAG"
+          name: test_env_var
+          command: echo "$CIRCLE_TAG"
 
 
 workflows:
