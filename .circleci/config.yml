@@ -44,7 +44,7 @@ jobs:
           name: push_image
           command: docker push "$AWS_ECR_ACCOUNT_URL/prod-hello-world:$CIRCLE_TAG"
 
-  staging_tests:
+  tests:
     docker:
       - image: circleci/ruby:2.4.1-jessie
         environment:
@@ -119,12 +119,12 @@ jobs:
 workflows:
   version: 2
 
-  staging:
+  smoke_tests:
     jobs:
-      - staging_tests:
+      - tests:
           filters:
             branches:
-              ignore: /^master$/
+              only: /.*/
   
   push_staging:
     jobs:
