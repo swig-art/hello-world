@@ -4,7 +4,7 @@ orbs:
   aws-cli: circleci/aws-cli@0.1.11
 
 jobs:
-  ecr_staging:
+  staging_push_to_ecr:
     machine: true
     steps:
       - checkout
@@ -23,6 +23,26 @@ jobs:
       - run:
           name: push_image
           command: docker push "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG"
+
+  prod_push_to_ecr:
+    machine: true
+    steps:
+      - checkout
+      - aws-cli/install
+      - aws-cli/configure:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-region: AWS_REGION
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+      - run:
+          name: build_image
+          command: |
+            docker build -t "$AWS_ECR_ACCOUNT_URL/prod-hello-world:$CIRCLE_TAG" . 
+      - run:
+          name: ecr_login
+          command: $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - run:
+          name: push_image
+          command: docker push "$AWS_ECR_ACCOUNT_URL/prod-hello-world:$CIRCLE_TAG"
 
   staging_tests:
     docker:
@@ -108,10 +128,18 @@ workflows:
   
   push_staging:
     jobs:
-      - ecr_staging:
+      - staging_push_to_ecr:
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^staging.*/
 
+  push_prod:
+    jobs:
+      - prod_push_to_ecr:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
