@@ -30,7 +30,16 @@ jobs:
             gcloud --quiet config set compute/zone us-central1-a
             gcloud container clusters get-credentials standard-cluster-1 --zone us-central1-a --project deft-return-160022
             kubectl get nodes
-
+            docker build -t "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG" . 
+            $(aws ecr get-login --no-include-email --region $AWS_REGION)
+            docker push "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG"
+            TOKEN=$(aws ecr --no-include-email --region=$AWS_REGION get-authorization-token --output text --query authorizationData[].authorizationToken | base64 -d | cut -d":" -f2)
+            kubectl delete secret --ignore-not-found $SECRET_NAME
+            kubectl create secret docker-registry $SECRET_NAME \
+              --docker-server=https://${AWS_ACCOUNT_NUMBER}.dkr.ecr.${AWS_REGION}.amazonaws.com \
+              --docker-username=AWS \
+              --docker-password="${TOKEN}" 
+            # kubectl set deployment staging-hello-world staging-hello-world="$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG"
 
 
   prod_push_to_ecr:
