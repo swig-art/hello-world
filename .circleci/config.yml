@@ -124,7 +124,7 @@ workflows:
       - staging_tests:
           filters:
             branches:
-              only: /^((?!master).)*$/
+              ignore: /^master$/
   
   push_staging:
     jobs:
