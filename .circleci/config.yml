@@ -1,10 +1,50 @@
 version: 2.1
 
 orbs:
-  aws-ecr: circleci/aws-ecr@3.0.0
+  aws-cli: circleci/aws-cli@0.1.11
 
 jobs:
-  build_dev:
+  staging_push_to_ecr:
+    machine: true
+    steps:
+      - checkout
+      - aws-cli/install
+      - aws-cli/configure:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-region: AWS_REGION
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+      - run:
+          name: build_image
+          command: |
+            docker build -t "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG" . 
+      - run:
+          name: ecr_login
+          command: $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - run:
+          name: push_image
+          command: docker push "$AWS_ECR_ACCOUNT_URL/staging-hello-world:$CIRCLE_TAG"
+
+  prod_push_to_ecr:
+    machine: true
+    steps:
+      - checkout
+      - aws-cli/install
+      - aws-cli/configure:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-region: AWS_REGION
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+      - run:
+          name: build_image
+          command: |
+            docker build -t "$AWS_ECR_ACCOUNT_URL/prod-hello-world:$CIRCLE_TAG" . 
+      - run:
+          name: ecr_login
+          command: $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - run:
+          name: push_image
+          command: docker push "$AWS_ECR_ACCOUNT_URL/prod-hello-world:$CIRCLE_TAG"
+
+  staging_tests:
     docker:
       - image: circleci/ruby:2.4.1-jessie
         environment:
@@ -76,46 +116,30 @@ jobs:
       # Tests passed! Hello world. 
       - run: echo "hello development"
 
-  build_prod:
-    docker:
-      - image: circleci/ruby:2.4.1-jessie
-        environment:
-          BUNDLE_WITHOUT: test:development
-          BUNDLE_JOBS: 3
-          BUNDLE_RETRY: 3
-          BUNDLE_PATH: vendor/bundle
-          RACK_ENV: production
-
-    steps:
-      - checkout
-      - run:
-          name: test_for_tag
-          command: |
-            echo "$CIRCLE_TAG"
-            if git log -1 --pretty=%B | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
-              continue
-            else
-              echo "Master branch has no tag or has not been tagged properly." 
-              echo "FATAL ERROR. Exiting"
-              exit 1
-            fi
-
 workflows:
   version: 2
 
-  development:
+  staging:
     jobs:
-      - build_dev:
+      - staging_tests:
           filters:
             branches:
-              only:
-                - /^((?!master).)*$/
-
-  production:
+              ignore: /^master$/
+  
+  push_staging:
     jobs:
-      - build_prod:
+      - staging_push_to_ecr:
           filters:
             branches:
-              only: 
-                - master 
+              ignore: /.*/
+            tags:
+              only: /^staging.*/
 
+  push_prod:
+    jobs:
+      - prod_push_to_ecr:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
